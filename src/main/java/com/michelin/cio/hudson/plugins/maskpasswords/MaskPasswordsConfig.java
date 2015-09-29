@@ -24,13 +24,14 @@
 
 package com.michelin.cio.hudson.plugins.maskpasswords;
 
-import com.michelin.cio.hudson.plugins.maskpasswords.MaskPasswordsBuildWrapper.VarPasswordPair;
 import hudson.ExtensionList;
 import hudson.XmlFile;
+import hudson.model.ParameterValue;
 import hudson.model.Hudson;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterDefinition.ParameterDescriptor;
-import hudson.model.ParameterValue;
+import hudson.util.Secret;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -43,9 +44,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import net.sf.json.JSONObject;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.StaplerRequest;
+
+import com.michelin.cio.hudson.plugins.maskpasswords.MaskPasswordsBuildWrapper.GlobalKeepassPair;
+import com.michelin.cio.hudson.plugins.maskpasswords.MaskPasswordsBuildWrapper.VarPasswordPair;
 
 /**
  * Singleton class to manage Mask Passwords global settings.
@@ -79,6 +85,8 @@ public class MaskPasswordsConfig {
      * @since 2.7
      */
     private List<VarPasswordPair> globalVarPasswordPairs;
+    
+    private List<GlobalKeepassPair> globalKeepassLocations;
 
     public MaskPasswordsConfig() {
         maskPasswordsParamDefClasses = new LinkedHashSet<String>();
@@ -116,6 +124,7 @@ public class MaskPasswordsConfig {
     public void clear() {
         maskPasswordsParamDefClasses.clear();
         getGlobalVarPasswordPairsList().clear();
+        getGlobalKeepassLocations().clear();
     }
 
     public static MaskPasswordsConfig getInstance() {
@@ -269,7 +278,21 @@ public class MaskPasswordsConfig {
         LOGGER.exiting(CLASS_NAME, "save");
     }
 
-    private final static String CLASS_NAME = MaskPasswordsConfig.class.getName();
+    public List<GlobalKeepassPair> getGlobalKeepassLocations() {
+    	if(this.globalKeepassLocations == null){
+    		this.globalKeepassLocations = new ArrayList<GlobalKeepassPair>();
+    	}
+		return globalKeepassLocations;
+	}
+
+	public void addGlobalKeepassPair(GlobalKeepassPair pair){
+        if(StringUtils.isBlank(pair.getLocation()) || StringUtils.isBlank(pair.getPassword())) {
+            return;
+        }
+        getGlobalKeepassLocations().add(pair);
+	}
+
+	private final static String CLASS_NAME = MaskPasswordsConfig.class.getName();
     private final static Logger LOGGER = Logger.getLogger(CLASS_NAME);
 
 }

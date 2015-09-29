@@ -215,6 +215,63 @@ public final class MaskPasswordsBuildWrapper extends BuildWrapper {
 
     }
 
+    /**
+     * Represents name/password entries defined by users in their jobs.
+     * <p>Equality and hashcode are based on {@code var} only, not
+     * {@code password}.</p>
+     */
+    public static class GlobalKeepassPair implements Cloneable {
+
+        private final String location;
+        private final Secret password;
+
+        @DataBoundConstructor
+        public GlobalKeepassPair(String location, String password) {
+            this.location = location;
+            this.password = Secret.fromString(password);
+        }
+
+        @Override
+        public Object clone() {
+            return new GlobalKeepassPair(getLocation(), getPassword());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj == null) {
+                return false;
+            }
+            if(getClass() != obj.getClass()) {
+                return false;
+            }
+            final GlobalKeepassPair other = (GlobalKeepassPair) obj;
+            if((this.location == null) ? (other.location != null) : !this.location.equals(other.location)) {
+                return false;
+            }
+            return true;
+        }
+
+        public String getLocation() {
+            return location;
+        }
+
+        public String getPassword() {
+            return Secret.toString(password);
+        }
+
+        public Secret getPasswordAsSecret() {
+            return password;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 67 * hash + (this.location != null ? this.location.hashCode() : 0);
+            return hash;
+        }
+
+    }
+
     @Extension(ordinal = 1000) // JENKINS-12161
     public static final class DescriptorImpl extends BuildWrapperDescriptor {
         
@@ -260,6 +317,23 @@ public final class MaskPasswordsBuildWrapper extends BuildWrapper {
                                 jsonObject.getString("var"),
                                 jsonObject.getString("password")));
                     }
+                }
+                if(submittedForm.has("globalKeepassLocations")){
+                	Object o = submittedForm.get("globalKeepassLocations");
+                	if(o instanceof JSONObject){
+                		String kpLocation = ((JSONObject) o).getString("keepassLocation");
+    	                String kpPassword = ((JSONObject) o).getString("keepassPassword");
+    	                GlobalKeepassPair kpPair = new GlobalKeepassPair(kpLocation, kpPassword);
+    	                getConfig().addGlobalKeepassPair(kpPair);
+                	} else if (o instanceof JSONArray){
+                		for(int i=0; i<((JSONArray) o).size(); i++){
+                    		String kpLocation = ((JSONArray) o).getJSONObject(i).getString("keepassLocation");
+        	                String kpPassword = ((JSONArray) o).getJSONObject(i).getString("keepassPassword");
+        	                GlobalKeepassPair kpPair = new GlobalKeepassPair(kpLocation, kpPassword);
+        	                getConfig().addGlobalKeepassPair(kpPair);
+                		}
+                	}
+	                
                 }
 
                 MaskPasswordsConfig.save(getConfig());

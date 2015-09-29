@@ -53,4 +53,24 @@
             </f:repeatable>
         </f:entry>
     </f:section>
+    <!-- parameter definitions to be automatically masked -->
+    <f:section title="${%KeepassDatabase}">
+        <f:entry title="${paramDef.value}">
+            <f:repeatable name="globalKeepassLocations" items="${descriptor.config.globalKeepassLocations}" var="globalKeepassPair">
+	            <table width="100%">
+	                <tr>
+	                    <td width="20%" align="right">KeePass Location</td>
+	                    <td width="30%">
+	                        <input name="keepassLocation" value="${!empty globalKeepassPair.location?globalKeepassPair.location:''}" size="20"/>
+	                    </td>
+	                    <td width="20%" align="right">KeePass Password</td>
+	                    <td width="30%">
+	                        <input name="keepassPassword" type="password" value="${!empty globalKeepassPair.password?globalKeepassPair.password:''}"/>
+	                    </td>
+                        <td width="20%" align="right"><f:repeatableDeleteButton/></td>
+	                </tr>
+	            </table>
+            </f:repeatable>
+        </f:entry>
+    </f:section>
 </j:jelly>
