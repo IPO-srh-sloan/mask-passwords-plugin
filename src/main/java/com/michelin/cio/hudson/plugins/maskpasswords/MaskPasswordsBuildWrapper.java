@@ -25,21 +25,15 @@
 
 package com.michelin.cio.hudson.plugins.maskpasswords;
 
-import com.thoughtworks.xstream.converters.Converter;
-import com.thoughtworks.xstream.converters.MarshallingContext;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.ParameterValue;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.ParametersAction;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
-import hudson.util.CopyOnWriteMap;
 import hudson.util.Secret;
 
 import java.io.IOException;
@@ -47,17 +41,27 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.localizer.Localizable;
 import org.jvnet.localizer.ResourceBundleHolder;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
+
+import com.michelin.cio.hudson.plugins.maskpasswords.keepass.KeepassService;
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 
 /**
  * Build wrapper that alters the console so that passwords don't get displayed.
@@ -87,6 +91,16 @@ public final class MaskPasswordsBuildWrapper extends BuildWrapper {
         List<VarPasswordPair> globalVarPasswordPairs = config.getGlobalVarPasswordPairs();
         for(VarPasswordPair globalVarPasswordPair: globalVarPasswordPairs) {
             allPasswords.add(globalVarPasswordPair.getPassword());
+        }
+        
+        //keepass passwords
+        List<GlobalKeepassPair> globalKeepassPairs = config.getGlobalKeepassLocations();
+        for(GlobalKeepassPair pair : globalKeepassPairs){
+        	KeepassService service = new KeepassService(pair.getLocation(), pair.getPassword());
+        	Map<String, String> entries = service.getKeepassEntries();
+        	for(Entry<String, String> e : entries.entrySet()){
+        		allPasswords.add(e.getValue());
+        	}
         }
 
         // job's passwords
@@ -127,6 +141,16 @@ public final class MaskPasswordsBuildWrapper extends BuildWrapper {
         // we can't use variables.putAll() since passwords are ciphered when in varPasswordPairs
         for(VarPasswordPair globalVarPasswordPair: globalVarPasswordPairs) {
             variables.put(globalVarPasswordPair.getVar(), globalVarPasswordPair.getPassword());
+        }
+        
+        //keepass passwords
+        List<GlobalKeepassPair> globalKeepassPairs = config.getGlobalKeepassLocations();
+        for(GlobalKeepassPair pair : globalKeepassPairs){
+        	KeepassService service = new KeepassService(pair.getLocation(), pair.getPassword());
+        	Map<String, String> entries = service.getKeepassEntries();
+        	for(Entry<String, String> e : entries.entrySet()){
+        		variables.put(e.getKey(), e.getValue());
+        	}
         }
 
         // job's var/password pairs
@@ -435,5 +459,7 @@ public final class MaskPasswordsBuildWrapper extends BuildWrapper {
     }
 
     private static final Logger LOGGER = Logger.getLogger(MaskPasswordsBuildWrapper.class.getName());
+    
+
 
 }

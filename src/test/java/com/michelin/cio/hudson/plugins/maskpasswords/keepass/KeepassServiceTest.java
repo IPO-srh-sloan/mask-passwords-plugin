@@ -33,4 +33,14 @@ public class KeepassServiceTest {
 		assertEquals("Wrong test password", "testpass", entries.get("dbUser_test"));
 	}
 
+	@Test 
+	public void testReadEntryHardcodedPath(){
+		String path = "F:\\workspaces\\poc\\mask-passwords-plugin\\src\\test\\resources\\TestDB.kdbx";
+		System.out.println("Path is " + path);
+		assertTrue("test db doesn't exist", new File(path).exists());
+		service = new KeepassService(path, MASTER_PASS);
+		Map<String, String> entries = service.getKeepassEntries();
+		assertEquals("wrong number of entries", 2, entries.size());
+		
+	}
 }

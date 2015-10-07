@@ -1,5 +1,6 @@
 package com.michelin.cio.hudson.plugins.maskpasswords.keepass;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +38,12 @@ public class KeepassService {
 
 	public Map<String, String> getKeepassEntries(){
 		Map<String, String> allEntries = new HashMap<String, String>();
-		
-		KeePassFile database = KeePassDatabase.getInstance(keepassPath).openDatabase(masterPass);
+		System.out.println("Opening kp db at " + keepassPath + " with password " + masterPass);
+		File kpFile = new File(keepassPath);
+		System.out.println("KP file exists? " + kpFile.exists());
+		KeePassDatabase kpdb = KeePassDatabase.getInstance(kpFile);
+		System.out.println("Got kpdb? " + (kpdb != null));
+		KeePassFile database = kpdb.openDatabase(masterPass);
 		List<Entry> entries = database.getEntries();
 		for(Entry e : entries){
 			allEntries.put(e.getTitle(), e.getPassword());
@@ -46,7 +51,5 @@ public class KeepassService {
 		
 		return allEntries;
 	}
-
-	KeePassFile database = KeePassDatabase.getInstance("\\\\chns\\ns\\Safe\\Deployment.kdbx").openDatabase("@DrDud02wii");
 	
 }
