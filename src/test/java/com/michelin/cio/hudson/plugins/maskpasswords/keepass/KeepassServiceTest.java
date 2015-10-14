@@ -1,10 +1,13 @@
 package com.michelin.cio.hudson.plugins.maskpasswords.keepass;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -14,6 +17,7 @@ public class KeepassServiceTest {
 	
 	private static final String MASTER_PASS = "@MasterP455";
 	private KeepassService service;
+	private File kpFile;
 	
 	@Before
 	public void setup(){
@@ -21,7 +25,8 @@ public class KeepassServiceTest {
 		assertNotNull("getting resource returned null", url);
 		String path = url.getPath();
 		System.out.println("Path is " + path);
-		assertTrue("test db doesn't exist", new File(path).exists());
+		kpFile = new File(path);
+		assertTrue("test db doesn't exist", kpFile.exists());
 		service = new KeepassService(path, MASTER_PASS);
 	}
 
@@ -45,5 +50,12 @@ public class KeepassServiceTest {
 		Map<String, String> entries = service.getKeepassEntries();
 		assertEquals("wrong number of entries", 7, entries.size());
 		
+	}
+	
+	@Test
+	public void testGetAllPasswords(){
+		List<String> passwords = service.getKeepassPasswords();
+		assertEquals("Wrong number of entries", 3, passwords.size());
+		assertTrue("should contain devpass", passwords.contains("devpass"));
 	}
 }

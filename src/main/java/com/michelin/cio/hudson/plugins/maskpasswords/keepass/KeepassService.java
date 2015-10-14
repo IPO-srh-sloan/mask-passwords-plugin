@@ -1,6 +1,7 @@
 package com.michelin.cio.hudson.plugins.maskpasswords.keepass;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ public class KeepassService {
 	
 	private String keepassPath;
 	private String masterPass;
+	private Map<String, String> allEntries;
 
 	public KeepassService(String keepassPath, String masterPass) {
 		super();
@@ -51,6 +53,19 @@ public class KeepassService {
 			}
 		}
 		return allEntries;
+	}
+
+	public List<String> getKeepassPasswords(){
+		List<String> allPasswords = new ArrayList<String>();
+		System.out.println("Opening kp db at " + keepassPath + " with password " + masterPass);
+		File kpFile = new File(keepassPath);
+		KeePassDatabase kpdb = KeePassDatabase.getInstance(kpFile);
+		KeePassFile database = kpdb.openDatabase(masterPass);
+		List<Entry> entries = database.getEntries();
+		for(Entry e : entries){
+			allPasswords.add(e.getPassword());
+		}
+		return allPasswords;
 	}
 	
 }

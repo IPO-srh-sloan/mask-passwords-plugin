@@ -39,6 +39,7 @@ import hudson.util.Secret;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -68,15 +69,22 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
  * 
  * @author Romain Seguy (http://openromain.blogspot.com)
  */
-public final class MaskPasswordsBuildWrapper extends BuildWrapper {
+public class MaskPasswordsBuildWrapper extends BuildWrapper {
 
 	private final List<VarPasswordPair> varPasswordPairs;
 	private final boolean injectFromKeepass;
+	private List<String> allKeepassPasswords;
+	private Map<String, String> allKeepassEntries;
 
 	@DataBoundConstructor
 	public MaskPasswordsBuildWrapper(List<VarPasswordPair> varPasswordPairs, boolean injectFromKeepass) {
 		this.varPasswordPairs = varPasswordPairs;
 		this.injectFromKeepass = injectFromKeepass;
+		initialiseKeepassData();
+	}
+
+	protected MaskPasswordsConfig getConfig() {
+		return MaskPasswordsConfig.getInstance();
 	}
 
 	// TODO: Most probably the method is not required after introducing
@@ -89,7 +97,7 @@ public final class MaskPasswordsBuildWrapper extends BuildWrapper {
 	public OutputStream decorateLogger(AbstractBuild build, OutputStream logger) {
 		List<String> allPasswords = new ArrayList<String>(); // all passwords to
 																// be masked
-		MaskPasswordsConfig config = MaskPasswordsConfig.getInstance();
+		MaskPasswordsConfig config = getConfig();
 
 		// global passwords
 		List<VarPasswordPair> globalVarPasswordPairs = config.getGlobalVarPasswordPairs();
@@ -98,13 +106,9 @@ public final class MaskPasswordsBuildWrapper extends BuildWrapper {
 		}
 
 		// keepass passwords
-		List<GlobalKeepassPair> globalKeepassPairs = config.getGlobalKeepassLocations();
-		for (GlobalKeepassPair pair : globalKeepassPairs) {
-			KeepassService service = new KeepassService(pair.getLocation(), pair.getPassword());
-			Map<String, String> entries = service.getKeepassEntries();
-			for (Entry<String, String> e : entries.entrySet()) {
-				allPasswords.add(e.getValue());
-			}
+		System.out.println("injecting passwords for masking");
+		for (String password : this.allKeepassPasswords) {
+			allPasswords.add(password);
 		}
 
 		// job's passwords
@@ -133,6 +137,23 @@ public final class MaskPasswordsBuildWrapper extends BuildWrapper {
 		return new MaskPasswordsOutputStream(logger, allPasswords);
 	}
 
+	protected void initialiseKeepassData() {
+		this.allKeepassEntries = new HashMap<String, String>();
+		this.allKeepassPasswords = new ArrayList<String>();
+		List<GlobalKeepassPair> globalKeepassPairs = getConfig().getGlobalKeepassLocations();
+		for (GlobalKeepassPair pair : globalKeepassPairs) {
+			KeepassService service = new KeepassService(pair.getLocation(), pair.getPassword());
+			List<String> passwords = service.getKeepassPasswords();
+			for (String password : passwords) {
+				this.allKeepassPasswords.add(password);
+			}
+			Map<String, String> entries = service.getKeepassEntries();
+			for (Entry<String, String> e : entries.entrySet()) {
+				this.allKeepassEntries.put(e.getKey(), e.getValue());
+			}
+		}
+	}
+
 	/**
 	 * Contributes the passwords defined by the user as variables that can be
 	 * reused from build steps (and other places).
@@ -150,14 +171,10 @@ public final class MaskPasswordsBuildWrapper extends BuildWrapper {
 
 		// keepass passwords
 		if (this.injectFromKeepass) {
-			List<GlobalKeepassPair> globalKeepassPairs = config.getGlobalKeepassLocations();
-			for (GlobalKeepassPair pair : globalKeepassPairs) {
-				KeepassService service = new KeepassService(pair.getLocation(), pair.getPassword());
-				Map<String, String> entries = service.getKeepassEntries();
-				for (Entry<String, String> e : entries.entrySet()) {
-					variables.put(e.getKey(), e.getValue());
-				}
+			for (Entry<String, String> e : this.allKeepassEntries.entrySet()) {
+				variables.put(e.getKey(), e.getValue());
 			}
+
 		}
 
 		// job's var/password pairs
@@ -181,6 +198,8 @@ public final class MaskPasswordsBuildWrapper extends BuildWrapper {
 	@Override
 	public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException,
 			InterruptedException {
+		System.out.println("in setup");
+		initialiseKeepassData();
 		return new Environment() {
 			// nothing to tearDown()
 		};
