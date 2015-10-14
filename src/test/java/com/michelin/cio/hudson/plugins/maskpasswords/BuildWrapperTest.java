@@ -54,7 +54,6 @@ public class BuildWrapperTest {
 		EasyMock.replay(config);
 		EasyMock.expect(wrapper.getConfig()).andReturn(config).anyTimes();
 		EasyMock.replay(wrapper);
-		wrapper.initialiseKeepassData();
 		
 		build = EasyMock.createMock(AbstractBuild.class);
 		EasyMock.expect(build.getAction(ParametersAction.class)).andReturn(null);

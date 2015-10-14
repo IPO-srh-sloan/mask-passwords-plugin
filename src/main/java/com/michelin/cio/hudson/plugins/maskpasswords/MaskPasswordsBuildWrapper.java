@@ -80,7 +80,6 @@ public class MaskPasswordsBuildWrapper extends BuildWrapper {
 	public MaskPasswordsBuildWrapper(List<VarPasswordPair> varPasswordPairs, boolean injectFromKeepass) {
 		this.varPasswordPairs = varPasswordPairs;
 		this.injectFromKeepass = injectFromKeepass;
-		initialiseKeepassData();
 	}
 
 	protected MaskPasswordsConfig getConfig() {
@@ -95,6 +94,8 @@ public class MaskPasswordsBuildWrapper extends BuildWrapper {
 	 */
 	@Override
 	public OutputStream decorateLogger(AbstractBuild build, OutputStream logger) {
+		initialiseKeepassData();
+		
 		List<String> allPasswords = new ArrayList<String>(); // all passwords to
 																// be masked
 		MaskPasswordsConfig config = getConfig();
@@ -199,7 +200,6 @@ public class MaskPasswordsBuildWrapper extends BuildWrapper {
 	public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException,
 			InterruptedException {
 		System.out.println("in setup");
-		initialiseKeepassData();
 		return new Environment() {
 			// nothing to tearDown()
 		};
