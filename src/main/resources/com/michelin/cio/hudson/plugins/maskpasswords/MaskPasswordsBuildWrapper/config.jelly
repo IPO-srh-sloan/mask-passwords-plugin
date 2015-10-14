@@ -54,8 +54,8 @@
      	<table width="100%">
         	<tr>
                 <td>
-                	<f:checkbox id="inject" name="injectFromKeepass" checked="${instance.injectFromKeepass}"/>
-                	<label for="inject">${%injectFromKP}</label>
+                	<f:checkbox name="injectFromKeepass" checked="${instance.injectFromKeepass}"/>
+                	<label class="attach-previous">${%injectFromKP}</label>
                 </td>
             </tr>
         </table>
