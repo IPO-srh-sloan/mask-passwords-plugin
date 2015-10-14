@@ -28,9 +28,12 @@ public class KeepassServiceTest {
 	@Test
 	public void testReadEntries() {
 		Map<String, String> entries = service.getKeepassEntries();
-		assertEquals("wrong number of entries", 2, entries.size());
-		assertEquals("Wrong dev password", "devpass", entries.get("dbUser_dev"));
-		assertEquals("Wrong test password", "testpass", entries.get("dbUser_test"));
+		assertEquals("wrong number of entries", 7, entries.size());
+		assertEquals("Wrong dev password", "devpass", entries.get("dbUser_dev_pass"));
+		assertEquals("Wrong test password", "testpass", entries.get("dbUser_test_pass"));
+		assertEquals("Wrong test userId", "dbuser", entries.get("dbUser_test_userId"));
+		assertNull("should be no devDb url", entries.get("dbUser_dev_url"));
+		assertEquals("Wrong aaa url", "http://google.com", entries.get("aaauser_url"));
 	}
 
 	@Test 
@@ -40,7 +43,7 @@ public class KeepassServiceTest {
 		assertTrue("test db doesn't exist", new File(path).exists());
 		service = new KeepassService(path, MASTER_PASS);
 		Map<String, String> entries = service.getKeepassEntries();
-		assertEquals("wrong number of entries", 2, entries.size());
+		assertEquals("wrong number of entries", 7, entries.size());
 		
 	}
 }

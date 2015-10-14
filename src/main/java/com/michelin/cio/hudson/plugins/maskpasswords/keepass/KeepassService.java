@@ -44,9 +44,12 @@ public class KeepassService {
 		KeePassFile database = kpdb.openDatabase(masterPass);
 		List<Entry> entries = database.getEntries();
 		for(Entry e : entries){
-			allEntries.put(e.getTitle(), e.getPassword());
+			allEntries.put(e.getTitle() + "_pass", e.getPassword());
+			allEntries.put(e.getTitle() + "_userId", e.getUsername());
+			if(e.getUrl() != null && e.getUrl().length() > 0){
+				allEntries.put(e.getTitle() + "_url", e.getUrl());
+			}
 		}
-		
 		return allEntries;
 	}
 	
