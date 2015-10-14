@@ -50,4 +50,14 @@
             </table>
         </f:repeatable>
     </f:entry>
+    <f:entry field="injectFromKeepass">
+     	<table width="100%">
+        	<tr>
+                <td>
+                	<f:checkbox id="inject" name="injectFromKeepass" checked="${instance.injectFromKeepass}"/>
+                	<label for="inject">${%injectFromKP}</label>
+                </td>
+            </tr>
+        </table>
+    </f:entry>
 </j:jelly>

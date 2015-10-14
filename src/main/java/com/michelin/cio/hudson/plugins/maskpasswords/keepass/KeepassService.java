@@ -40,9 +40,7 @@ public class KeepassService {
 		Map<String, String> allEntries = new HashMap<String, String>();
 		System.out.println("Opening kp db at " + keepassPath + " with password " + masterPass);
 		File kpFile = new File(keepassPath);
-		System.out.println("KP file exists? " + kpFile.exists());
 		KeePassDatabase kpdb = KeePassDatabase.getInstance(kpFile);
-		System.out.println("Got kpdb? " + (kpdb != null));
 		KeePassFile database = kpdb.openDatabase(masterPass);
 		List<Entry> entries = database.getEntries();
 		for(Entry e : entries){
