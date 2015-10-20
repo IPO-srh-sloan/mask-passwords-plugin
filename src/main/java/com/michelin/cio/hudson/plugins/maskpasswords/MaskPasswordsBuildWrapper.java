@@ -38,6 +38,7 @@ import hudson.util.Secret;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +58,7 @@ import org.jvnet.localizer.ResourceBundleHolder;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import com.michelin.cio.hudson.plugins.maskpasswords.keepass.KeepassAccessException;
 import com.michelin.cio.hudson.plugins.maskpasswords.keepass.KeepassService;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
@@ -94,8 +96,8 @@ public class MaskPasswordsBuildWrapper extends BuildWrapper {
 	 */
 	@Override
 	public OutputStream decorateLogger(AbstractBuild build, OutputStream logger) {
-		initialiseKeepassData();
-		
+		initialiseKeepassData(logger);
+
 		List<String> allPasswords = new ArrayList<String>(); // all passwords to
 																// be masked
 		MaskPasswordsConfig config = getConfig();
@@ -107,7 +109,6 @@ public class MaskPasswordsBuildWrapper extends BuildWrapper {
 		}
 
 		// keepass passwords
-		System.out.println("injecting passwords for masking");
 		for (String password : this.allKeepassPasswords) {
 			allPasswords.add(password);
 		}
@@ -138,19 +139,28 @@ public class MaskPasswordsBuildWrapper extends BuildWrapper {
 		return new MaskPasswordsOutputStream(logger, allPasswords);
 	}
 
-	protected void initialiseKeepassData() {
+	protected void initialiseKeepassData(OutputStream logger) {
 		this.allKeepassEntries = new HashMap<String, String>();
 		this.allKeepassPasswords = new ArrayList<String>();
 		List<GlobalKeepassPair> globalKeepassPairs = getConfig().getGlobalKeepassLocations();
 		for (GlobalKeepassPair pair : globalKeepassPairs) {
-			KeepassService service = new KeepassService(pair.getLocation(), pair.getPassword());
-			List<String> passwords = service.getKeepassPasswords();
-			for (String password : passwords) {
-				this.allKeepassPasswords.add(password);
-			}
-			Map<String, String> entries = service.getKeepassEntries();
-			for (Entry<String, String> e : entries.entrySet()) {
-				this.allKeepassEntries.put(e.getKey(), e.getValue());
+			try {
+				KeepassService service = new KeepassService(pair.getLocation(), pair.getPassword());
+				List<String> passwords = service.getKeepassPasswords();
+				for (String password : passwords) {
+					this.allKeepassPasswords.add(password);
+				}
+				Map<String, String> entries = service.getKeepassEntries();
+				for (Entry<String, String> e : entries.entrySet()) {
+					this.allKeepassEntries.put(e.getKey(), e.getValue());
+				}
+			} catch (KeepassAccessException e) {
+				try {
+					logger.write(("========================\n[ERROR] " + e.getMessage() + "\nValues from this database will not be masked or injected.\n========================\n")
+							.getBytes());
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			}
 		}
 	}
@@ -199,7 +209,6 @@ public class MaskPasswordsBuildWrapper extends BuildWrapper {
 	@Override
 	public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException,
 			InterruptedException {
-		System.out.println("in setup");
 		return new Environment() {
 			// nothing to tearDown()
 		};

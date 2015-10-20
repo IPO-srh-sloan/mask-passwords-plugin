@@ -1,9 +1,14 @@
 <p>
-	When ticked, every password from in every KeePass database defined in the global 
-	config will be injected as an environment variable with the name of the entry title in 
-	KeePass. 
+	When ticked, every password, user ID and URL from every KeePass database defined in the global 
+	config will be injected as environment variables. Only the passwords will be masked. The values 
+	will be available as variables with the following naming patterns:
+	<ul>
+		<li>User ID: [entryTitle]_userId</li>
+		<li>Password: [entryTitle]_pass</li>
+		<li>URL: [entryTitle]_url</li>
+	</ul>
 </p>
 <p>
 	When unticked, every password in every KeePass database will be masked if it appears in 
-	the console output, but it will not be injected as an environment variable.
+	the console output, but no values from KeePass will be available as environment variables.
 </p>

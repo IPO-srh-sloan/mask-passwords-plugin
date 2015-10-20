@@ -31,7 +31,7 @@ public class KeepassServiceTest {
 	}
 
 	@Test
-	public void testReadEntries() {
+	public void testReadEntries() throws KeepassAccessException {
 		Map<String, String> entries = service.getKeepassEntries();
 		assertEquals("wrong number of entries", 7, entries.size());
 		assertEquals("Wrong dev password", "devpass", entries.get("dbUser_dev_pass"));
@@ -42,7 +42,7 @@ public class KeepassServiceTest {
 	}
 
 	@Test 
-	public void testReadEntryHardcodedPath(){
+	public void testReadEntryHardcodedPath() throws KeepassAccessException{
 		String path = "F:\\workspaces\\poc\\mask-passwords-plugin\\src\\test\\resources\\TestDB.kdbx";
 		System.out.println("Path is " + path);
 		assertTrue("test db doesn't exist", new File(path).exists());
@@ -53,7 +53,7 @@ public class KeepassServiceTest {
 	}
 	
 	@Test
-	public void testGetAllPasswords(){
+	public void testGetAllPasswords() throws KeepassAccessException{
 		List<String> passwords = service.getKeepassPasswords();
 		assertEquals("Wrong number of entries", 3, passwords.size());
 		assertTrue("should contain devpass", passwords.contains("devpass"));

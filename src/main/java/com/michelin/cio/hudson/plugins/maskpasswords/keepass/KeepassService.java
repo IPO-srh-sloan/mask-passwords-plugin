@@ -11,7 +11,7 @@ import de.slackspace.openkeepass.domain.Entry;
 import de.slackspace.openkeepass.domain.KeePassFile;
 
 public class KeepassService {
-	
+
 	private String keepassPath;
 	private String masterPass;
 	private Map<String, String> allEntries;
@@ -38,34 +38,41 @@ public class KeepassService {
 		this.masterPass = masterPass;
 	}
 
-	public Map<String, String> getKeepassEntries(){
+	public Map<String, String> getKeepassEntries() throws KeepassAccessException {
 		Map<String, String> allEntries = new HashMap<String, String>();
-		System.out.println("Opening kp db at " + keepassPath + " with password " + masterPass);
-		File kpFile = new File(keepassPath);
-		KeePassDatabase kpdb = KeePassDatabase.getInstance(kpFile);
-		KeePassFile database = kpdb.openDatabase(masterPass);
-		List<Entry> entries = database.getEntries();
-		for(Entry e : entries){
+		List<Entry> entries = openKeepassDB();
+		for (Entry e : entries) {
 			allEntries.put(e.getTitle() + "_pass", e.getPassword());
 			allEntries.put(e.getTitle() + "_userId", e.getUsername());
-			if(e.getUrl() != null && e.getUrl().length() > 0){
+			if (e.getUrl() != null && e.getUrl().length() > 0) {
 				allEntries.put(e.getTitle() + "_url", e.getUrl());
 			}
 		}
 		return allEntries;
 	}
 
-	public List<String> getKeepassPasswords(){
+	public List<String> getKeepassPasswords() throws KeepassAccessException {
 		List<String> allPasswords = new ArrayList<String>();
-		//System.out.println("Opening kp db at " + keepassPath + " with password " + masterPass);
-		File kpFile = new File(keepassPath);
-		KeePassDatabase kpdb = KeePassDatabase.getInstance(kpFile);
-		KeePassFile database = kpdb.openDatabase(masterPass);
-		List<Entry> entries = database.getEntries();
-		for(Entry e : entries){
+		List<Entry> entries = openKeepassDB();
+		for (Entry e : entries) {
 			allPasswords.add(e.getPassword());
 		}
 		return allPasswords;
 	}
-	
+
+	private List<Entry> openKeepassDB() throws KeepassAccessException {
+		List<String> allPasswords = new ArrayList<String>();
+		// System.out.println("Opening kp db at " + keepassPath +
+		// " with password " + masterPass);
+		File kpFile = new File(keepassPath);
+		try {
+			KeePassDatabase kpdb = KeePassDatabase.getInstance(kpFile);
+			KeePassFile database = kpdb.openDatabase(masterPass);
+			List<Entry> entries = database.getEntries();
+			return entries;
+		} catch (IllegalArgumentException e) {
+			throw new KeepassAccessException("Unable to open Keepass file at [" + keepassPath + "]", e);
+		}
+	}
+
 }

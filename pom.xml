@@ -48,7 +48,7 @@
 		<dependency>
 			<groupId>de.slackspace</groupId>
 			<artifactId>openkeepass</artifactId>
-			<version>0.4.3-SNAPSHOT</version>
+			<version>0.4.3.ipo</version>
 		</dependency>
 		<dependency>
 			<groupId>org.easymock</groupId>
