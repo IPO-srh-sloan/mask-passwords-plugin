@@ -57,7 +57,7 @@ public class KeepassService {
 
 	public List<String> getKeepassPasswords(){
 		List<String> allPasswords = new ArrayList<String>();
-		System.out.println("Opening kp db at " + keepassPath + " with password " + masterPass);
+		//System.out.println("Opening kp db at " + keepassPath + " with password " + masterPass);
 		File kpFile = new File(keepassPath);
 		KeePassDatabase kpdb = KeePassDatabase.getInstance(kpFile);
 		KeePassFile database = kpdb.openDatabase(masterPass);
