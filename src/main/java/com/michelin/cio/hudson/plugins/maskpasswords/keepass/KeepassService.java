@@ -42,10 +42,11 @@ public class KeepassService {
 		Map<String, String> allEntries = new HashMap<String, String>();
 		List<Entry> entries = openKeepassDB();
 		for (Entry e : entries) {
-			allEntries.put(e.getTitle() + "_pass", e.getPassword());
-			allEntries.put(e.getTitle() + "_userId", e.getUsername());
+			String titleNoSpaces = e.getTitle().replace(" ", "_");
+			allEntries.put(titleNoSpaces + "_pass", e.getPassword());
+			allEntries.put(titleNoSpaces + "_userId", e.getUsername());
 			if (e.getUrl() != null && e.getUrl().length() > 0) {
-				allEntries.put(e.getTitle() + "_url", e.getUrl());
+				allEntries.put(titleNoSpaces + "_url", e.getUrl());
 			}
 		}
 		return allEntries;
